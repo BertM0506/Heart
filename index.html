@@ -48,7 +48,7 @@
 
         .heart-text {
             position: absolute;
-            font-size: clamp(8px, 2vw, 11px);
+            font-size: clamp(9px, 2.5vw, 12px);
             font-weight: 600;
             white-space: nowrap;
             user-select: none;
@@ -68,16 +68,12 @@
             pointer-events: none;
             display: none;
             padding: 10px;
-            
-            /* Efek Cahaya Neon Pink & Putih */
             text-shadow: 
                 0 0 5px #fff,
                 0 0 10px #fff,
                 0 0 20px #ff1493,
                 0 0 30px #ff1493,
                 0 0 40px #ff1493;
-            
-            /* Animasi lampu berkedip halus */
             animation: neonGlow 2s ease-in-out infinite alternate;
         }
 
@@ -121,7 +117,7 @@
         ];
 
         const container = document.body;
-        const totalElements = 300; 
+        const totalElements = 150; // Sekarang dibatasi menjadi 150 elemen
         const elements = [];
         let isStarted = false;
         let mouseX = -1000;
@@ -201,7 +197,7 @@
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 let forceX = 0; forceY = 0;
-                const activeDist = isMobile ? 70 : 120;
+                const activeDist = isMobile ? 80 : 130;
                 
                 if (distance < activeDist) {
                     const repulsion = (activeDist - distance) * 0.8;
@@ -213,9 +209,9 @@
                 obj.el.style.left = `${targetX + forceX}px`;
                 obj.el.style.top = `${targetY + forceY}px`;
                 
-                const brightness = 0.4 + Math.abs(Math.sin(time + i * 0.05)) * 0.6;
+                const brightness = 0.4 + Math.abs(Math.sin(time + i * 0.1)) * 0.6;
                 obj.el.style.opacity = brightness;
-                obj.el.style.transform = `translate(-50%, -50%) scale(${0.7 + (brightness * 0.3)})`;
+                obj.el.style.transform = `translate(-50%, -50%) scale(${0.8 + (brightness * 0.2)})`;
             });
 
             requestAnimationFrame(animate);
