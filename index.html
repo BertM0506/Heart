@@ -18,14 +18,13 @@
             font-family: 'Segoe UI', Roboto, sans-serif;
         }
 
-        /* Overlay untuk tombol start */
         #overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -37,40 +36,46 @@
         #overlay h1 {
             color: white;
             border: 2px solid #ff1493;
-            padding: 20px 40px;
+            padding: 15px 30px;
             border-radius: 50px;
-            font-size: 1.5rem;
+            /* Ukuran font adaptif untuk HP/PC */
+            font-size: clamp(1rem, 5vw, 1.5rem);
             text-shadow: 0 0 10px #ff1493;
             box-shadow: 0 0 20px #ff1493;
+            text-align: center;
+            margin: 20px;
         }
 
         .heart-text {
             position: absolute;
-            font-size: 11px;
+            /* Ukuran teks lebih kecil di HP agar tidak berantakan */
+            font-size: clamp(8px, 2vw, 11px);
             font-weight: 600;
             white-space: nowrap;
             user-select: none;
             pointer-events: none;
             z-index: 2;
-            opacity: 0; /* Mulai dari transparan */
+            opacity: 0;
         }
 
         #center-message {
             position: absolute;
             color: white;
-            font-size: 1.5rem;
+            /* Ukuran pesan tengah adaptif */
+            font-size: clamp(1rem, 6vw, 1.8rem);
             text-shadow: 0 0 20px #ff1493;
             z-index: 3;
             text-align: center;
             pointer-events: none;
-            display: none; /* Muncul setelah klik */
+            display: none;
+            padding: 10px;
         }
 
         .background-glow {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, #200210 0%, #000 70%);
+            background: radial-gradient(circle at center, #200210 0%, #000 75%);
             z-index: 0;
         }
     </style>
@@ -91,9 +96,8 @@
     <script>
         const adjectives = [
             "Cantik", "Gemash", "Pintar", "Baik", "Lucu", "Manis", "Ramah", "Hebat", "Sempurna",
-            "Ceria", "Tulus", "Berharga", "Istimewa", "Mempesona", "Lembut", "Keren", "Sabar", "Menawan", "Unik",
-          
-        ]
+            "Ceria", "Tulus", "Berharga", "Istimewa", "Mempesona", "Lembut", "Keren", "Sabar", "Menawan", "Unik"
+        ];
 
         const container = document.body;
         const totalElements = 300; 
@@ -102,7 +106,6 @@
         let mouseX = -1000;
         let mouseY = -1000;
 
-        // Inisialisasi elemen
         for (let i = 0; i < totalElements; i++) {
             const span = document.createElement('span');
             const adj = adjectives[i % adjectives.length];
@@ -110,19 +113,17 @@
             span.className = 'heart-text';
             
             const hue = 330 + (Math.random() * 30);
-            span.style.color = `hsl(${hue}, 100%, 70%)`;
+            span.style.color = `hsl(${hue}, 100%, 75%)`;
             span.style.textShadow = `0 0 5px hsl(${hue}, 100%, 50%)`;
             
             container.appendChild(span);
             elements.push({
                 el: span,
                 angle: (i / totalElements) * Math.PI * 2,
-                randomOffset: Math.random() * 20,
                 phase: Math.random() * Math.PI * 2
             });
         }
 
-        // Fungsi Memulai Musik dan Animasi
         document.getElementById('overlay').addEventListener('click', function() {
             const audio = document.getElementById('mySong');
             audio.play().catch(e => console.log("Audio play failed", e));
@@ -136,9 +137,20 @@
             }, 1000);
         });
 
+        // Dukungan Mouse (PC)
         window.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
+        });
+
+        // Dukungan Touch (HP)
+        window.addEventListener('touchstart', (e) => {
+            mouseX = e.touches[0].clientX;
+            mouseY = e.touches[0].clientY;
+        });
+        window.addEventListener('touchmove', (e) => {
+            mouseX = e.touches[0].clientX;
+            mouseY = e.touches[0].clientY;
         });
 
         let time = 0;
@@ -146,20 +158,24 @@
         function animate() {
             if(!isStarted) return;
             time += 0.015;
+            
             const width = window.innerWidth;
             const height = window.innerHeight;
             const centerX = width / 2;
             const centerY = height / 2;
             
-            const pulse = Math.sin(time * 2) * 10;
-            const baseScale = Math.min(width, height) / 35;
+            const pulse = Math.sin(time * 2) * 5;
+            
+            // Perbaikan Skala: Di HP skala dibuat lebih kecil (35 -> 45) agar tidak melewati layar
+            const isMobile = width < 768;
+            const baseScale = Math.min(width, height) / (isMobile ? 50 : 35);
 
             elements.forEach((obj, i) => {
                 const t = obj.angle;
                 let x = 16 * Math.pow(Math.sin(t), 3);
                 let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
 
-                const currentScale = baseScale + (Math.sin(time + obj.phase) * 2) + (pulse * 0.2);
+                const currentScale = baseScale + (Math.sin(time + obj.phase) * 1) + (pulse * 0.2);
                 const targetX = centerX + x * currentScale;
                 const targetY = centerY + y * currentScale;
 
@@ -168,8 +184,11 @@
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 let forceX = 0; forceY = 0;
-                if (distance < 120) {
-                    const repulsion = (120 - distance) * 0.8;
+                // Sensitivitas jarak menghindar dikurangi sedikit di HP agar nyaman
+                const activeDist = isMobile ? 70 : 120;
+                
+                if (distance < activeDist) {
+                    const repulsion = (activeDist - distance) * 0.8;
                     const angle = Math.atan2(dy, dx);
                     forceX = -Math.cos(angle) * repulsion;
                     forceY = -Math.sin(angle) * repulsion;
