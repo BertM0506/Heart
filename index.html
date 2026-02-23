@@ -31,7 +31,6 @@
             align-items: center;
             z-index: 100;
             cursor: pointer;
-            transition: opacity 1s ease;
         }
 
         #overlay h1 {
@@ -39,17 +38,15 @@
             border: 2px solid #ff1493;
             padding: 15px 30px;
             border-radius: 50px;
-            font-size: clamp(1rem, 5vw, 1.5rem);
+            font-size: clamp(0.9rem, 4vw, 1.3rem);
             text-shadow: 0 0 10px #ff1493;
-            box-shadow: 0 0 20px #ff1493;
             text-align: center;
-            margin: 20px;
         }
 
         .heart-text {
             position: absolute;
-            /* Ukuran font diperbesar agar lebih jelas */
-            font-size: clamp(11px, 3vw, 15px); 
+            /* Ukuran font lebih kecil di HP agar tidak bertumpuk */
+            font-size: clamp(9px, 2.2vw, 14px); 
             font-weight: 700;
             white-space: nowrap;
             user-select: none;
@@ -62,38 +59,27 @@
             position: absolute;
             color: #fff;
             font-family: 'Montserrat Alternates', sans-serif;
-            font-size: clamp(1.2rem, 8vw, 2.5rem);
+            font-size: clamp(1rem, 7vw, 2.2rem);
             font-weight: 700;
             z-index: 3;
             text-align: center;
             pointer-events: none;
             display: none;
-            padding: 10px;
-            text-shadow: 
-                0 0 5px #fff,
-                0 0 10px #fff,
-                0 0 20px #ff1493,
-                0 0 30px #ff1493,
-                0 0 40px #ff1493;
+            width: 90%;
+            text-shadow: 0 0 10px #fff, 0 0 20px #ff1493, 0 0 30px #ff1493;
             animation: neonGlow 2s ease-in-out infinite alternate;
         }
 
         @keyframes neonGlow {
-            from {
-                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff1493, 0 0 30px #ff1493;
-                transform: scale(1);
-            }
-            to {
-                text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #ff1493, 0 0 40px #ff69b4, 0 0 70px #ff69b4;
-                transform: scale(1.05);
-            }
+            from { transform: translate(-50%, -50%) scale(1); }
+            to { transform: translate(-50%, -50%) scale(1.05); }
         }
 
         .background-glow {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, #200210 0%, #000 75%);
+            background: radial-gradient(circle at center, #200210 0%, #000 80%);
             z-index: 0;
         }
     </style>
@@ -109,7 +95,9 @@
     </audio>
 
     <div class="background-glow"></div>
-    <div id="center-message">✨<br>FOR BEAUTIFUL NICA</div>
+    <div id="center-message" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        ✨<br>FOR BEAUTIFUL NICA
+    </div>
 
     <script>
         const adjectives = [
@@ -118,7 +106,7 @@
         ];
 
         const container = document.body;
-        const totalElements = 100; // Jumlah elemen dikurangi menjadi 100
+        const totalElements = 100; 
         const elements = [];
         let isStarted = false;
         let mouseX = -1000;
@@ -132,7 +120,6 @@
             
             const hue = 330 + (Math.random() * 30);
             span.style.color = `hsl(${hue}, 100%, 75%)`;
-            span.style.textShadow = `0 0 8px hsl(${hue}, 100%, 50%)`; // Shadow dipertegas
             
             container.appendChild(span);
             elements.push({
@@ -144,30 +131,19 @@
 
         document.getElementById('overlay').addEventListener('click', function() {
             const audio = document.getElementById('mySong');
-            audio.play().catch(e => console.log("Audio play failed", e));
-            
-            this.style.opacity = '0';
-            setTimeout(() => {
-                this.style.display = 'none';
-                document.getElementById('center-message').style.display = 'block';
-                isStarted = true;
-                animate();
-            }, 1000);
+            audio.play().catch(e => console.log(e));
+            this.style.display = 'none';
+            document.getElementById('center-message').style.display = 'block';
+            isStarted = true;
+            animate();
         });
 
-        window.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        });
-
-        window.addEventListener('touchstart', (e) => {
-            mouseX = e.touches[0].clientX;
-            mouseY = e.touches[0].clientY;
-        });
-        window.addEventListener('touchmove', (e) => {
-            mouseX = e.touches[0].clientX;
-            mouseY = e.touches[0].clientY;
-        });
+        const updatePos = (e) => {
+            mouseX = e.clientX || e.touches[0].clientX;
+            mouseY = e.clientY || e.touches[0].clientY;
+        };
+        window.addEventListener('mousemove', updatePos);
+        window.addEventListener('touchmove', updatePos);
 
         let time = 0;
 
@@ -180,16 +156,17 @@
             const centerX = width / 2;
             const centerY = height / 2;
             
-            const pulse = Math.sin(time * 2) * 5;
             const isMobile = width < 768;
-            const baseScale = Math.min(width, height) / (isMobile ? 48 : 32);
+            // Skala yang lebih pas untuk layar HP (Portrait)
+            const baseScale = Math.min(width, height) / (isMobile ? 55 : 35);
 
             elements.forEach((obj, i) => {
                 const t = obj.angle;
+                // Rumus hati tetap
                 let x = 16 * Math.pow(Math.sin(t), 3);
                 let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
 
-                const currentScale = baseScale + (Math.sin(time + obj.phase) * 1) + (pulse * 0.2);
+                const currentScale = baseScale + (Math.sin(time + obj.phase) * 0.5);
                 const targetX = centerX + x * currentScale;
                 const targetY = centerY + y * currentScale;
 
@@ -197,11 +174,11 @@
                 const dy = mouseY - targetY;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                let forceX = 0; forceY = 0;
-                const activeDist = isMobile ? 90 : 150; // Jarak interaksi diperluas
+                let forceX = 0, forceY = 0;
+                const activeDist = isMobile ? 60 : 100;
                 
                 if (distance < activeDist) {
-                    const repulsion = (activeDist - distance) * 0.8;
+                    const repulsion = (activeDist - distance) * 0.6;
                     const angle = Math.atan2(dy, dx);
                     forceX = -Math.cos(angle) * repulsion;
                     forceY = -Math.sin(angle) * repulsion;
@@ -209,10 +186,8 @@
 
                 obj.el.style.left = `${targetX + forceX}px`;
                 obj.el.style.top = `${targetY + forceY}px`;
-                
-                const brightness = 0.5 + Math.abs(Math.sin(time + i * 0.1)) * 0.5;
-                obj.el.style.opacity = brightness;
-                obj.el.style.transform = `translate(-50%, -50%) scale(${0.85 + (brightness * 0.15)})`;
+                obj.el.style.opacity = 0.5 + Math.abs(Math.sin(time + i * 0.1)) * 0.5;
+                obj.el.style.transform = `translate(-50%, -50%) scale(${isMobile ? 0.8 : 1})`;
             });
 
             requestAnimationFrame(animate);
